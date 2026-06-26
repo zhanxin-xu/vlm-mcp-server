@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { FileNotFoundError, ApiError } from '../types/index.js';
 import { CommonSchemas, ToolSchemaBuilder } from '../utils/validation.js';
-import { formatMcpResponse, createSuccessResponse, createErrorResponse, withRetry } from '../core/api-common.js';
+import { formatMcpResponse, createSuccessResponse, createErrorResponse, withConfiguredRetry } from '../core/api-common.js';
 import { BaseImageAnalysisService } from '../core/base-image-service.js';
 import { UI_TO_ARTIFACT_PROMPTS } from '../prompts/index.js';
 
@@ -43,7 +43,7 @@ class UiToArtifactService extends BaseImageAnalysisService {
  */
 export function registerUiToArtifactTool(server: { tool: Function }) {
     const service = new UiToArtifactService();
-    const retryableConvert = withRetry(service.convertUiToArtifact.bind(service), 2, 1000);
+    const retryableConvert = withConfiguredRetry(service.convertUiToArtifact.bind(service));
     server.tool('ui_to_artifact', `Convert UI screenshots into various artifacts: code, prompts, design specifications, or descriptions.
 
 Use this tool ONLY when the user wants to:

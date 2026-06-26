@@ -58,7 +58,12 @@ export class FileService {
         const stats = fs.statSync(videoSource);
         const fileSizeMB = stats.size / (1024 * 1024);
         if (fileSizeMB > maxSizeMB) {
-            throw new Error(`Video file size (${fileSizeMB.toFixed(2)}MB) exceeds maximum allowed size (${maxSizeMB}MB)`);
+            throw new ValidationError(`Video file size (${fileSizeMB.toFixed(2)}MB) exceeds maximum allowed size (${maxSizeMB}MB)`);
+        }
+        const ext = path.extname(videoSource).toLowerCase();
+        const supportedExts = ['.mp4', '.mov', '.m4v'];
+        if (!supportedExts.includes(ext)) {
+            throw new ValidationError(`Unsupported video format: ${ext}. Supported formats: ${supportedExts.join(', ')}`);
         }
     }
 

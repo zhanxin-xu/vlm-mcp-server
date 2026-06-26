@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { FileNotFoundError, ApiError } from '../types/index.js';
+import { FileNotFoundError, ApiError, ValidationError } from '../types/index.js';
 import { ToolExecutionError } from '../core/error-handler.js';
 import { CommonSchemas, ToolSchemaBuilder } from '../utils/validation.js';
-import { createMultiModalMessage, createVideoContent, formatMcpResponse, createSuccessResponse, createErrorResponse, withRetry } from '../core/api-common.js';
+import { createMultiModalMessage, createVideoContent, formatMcpResponse, createSuccessResponse, createErrorResponse, withConfiguredRetry } from '../core/api-common.js';
 import { fileService } from '../core/file-service.js';
 import { chatService } from '../core/chat-service.js';
 import type { ContentPart } from '../providers/types.js';
@@ -65,7 +65,10 @@ class VideoAnalysisService {
                 error: error instanceof Error ? error.message : String(error),
                 videoSource: request.videoSource
             });
-            if (error instanceof ToolExecutionError) {
+            if (error instanceof ToolExecutionError
+                || error instanceof FileNotFoundError
+                || error instanceof ValidationError
+                || error instanceof ApiError) {
                 throw error;
             }
             // Wrap unknown errors
@@ -84,9 +87,7 @@ class VideoAnalysisService {
  */
 export function registerVideoAnalysisTool(server: { tool: Function }) {
     const analysisService = new VideoAnalysisService();
-    const retryableAnalyze = withRetry(analysisService.analyzeVideo.bind(analysisService), 2, // Maximum 2 retries
-    1000 // 1 second delay
-    );
+    const retryableAnalyze = withConfiguredRetry(analysisService.analyzeVideo.bind(analysisService));
     server.tool('analyze_video', `Analyze video content using advanced AI vision models.
 
 Use this tool when the user wants to:
@@ -129,6 +130,9 @@ Supports both local files and remote URL. Maximum file size: 8MB. Supports MP4, 
             }
             else if (error instanceof FileNotFoundError) {
                 errorResponse = createErrorResponse(`Video file not found: ${error.message}`);
+            }
+            else if (error instanceof ValidationError) {
+                errorResponse = createErrorResponse(`Validation failed: ${error.message}`);
             }
             else if (error instanceof ApiError) {
                 errorResponse = createErrorResponse(`API error: ${error.message}`);

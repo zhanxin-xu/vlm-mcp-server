@@ -85,6 +85,7 @@ Configure each API family independently. `auto` picks the first group with both 
 | `VLM_VISION_MODEL_MAX_TOKENS` | Max output tokens | `32768` |
 | `VLM_TIMEOUT` | Request timeout (ms) | `300000` |
 | `VLM_RETRY_COUNT` | Retry attempts | `1` |
+| `VLM_ENABLE_THINKING` | Enable provider-specific reasoning / thinking request fields. Off by default for broad OpenAI-compatible Chat Completions support. | `false` |
 | `VLM_ANTHROPIC_VERSION` | `anthropic-version` header (Anthropic only) | `2023-06-01` |
 | `VLM_LOG_PATH` | Custom log file path | `~/.vlm/vlm-mcp-YYYY-MM-DD.log` |
 

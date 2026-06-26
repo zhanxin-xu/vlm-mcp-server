@@ -85,6 +85,7 @@ claude mcp add -s user vlm-mcp-server \
 | `VLM_VISION_MODEL_MAX_TOKENS` | 最大输出 token | `32768` |
 | `VLM_TIMEOUT` | 请求超时（毫秒） | `300000` |
 | `VLM_RETRY_COUNT` | 重试次数 | `1` |
+| `VLM_ENABLE_THINKING` | 启用提供商特定的 reasoning / thinking 请求字段。默认关闭，以保持 OpenAI-compatible Chat Completions 的广泛兼容性。 | `false` |
 | `VLM_ANTHROPIC_VERSION` | `anthropic-version` 头（仅 Anthropic） | `2023-06-01` |
 | `VLM_LOG_PATH` | 自定义日志文件路径 | `~/.vlm/vlm-mcp-YYYY-MM-DD.log` |
 

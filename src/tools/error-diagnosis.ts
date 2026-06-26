@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { FileNotFoundError, ApiError } from '../types/index.js';
 import { CommonSchemas, ToolSchemaBuilder } from '../utils/validation.js';
-import { formatMcpResponse, createSuccessResponse, createErrorResponse, withRetry } from '../core/api-common.js';
+import { formatMcpResponse, createSuccessResponse, createErrorResponse, withConfiguredRetry } from '../core/api-common.js';
 import { BaseImageAnalysisService } from '../core/base-image-service.js';
 import { ERROR_DIAGNOSIS_PROMPT } from '../prompts/index.js';
 
@@ -42,7 +42,7 @@ class ErrorDiagnosisService extends BaseImageAnalysisService {
  */
 export function registerErrorDiagnosisTool(server: { tool: Function }) {
     const service = new ErrorDiagnosisService();
-    const retryableDiagnose = withRetry(service.diagnoseError.bind(service), 2, 1000);
+    const retryableDiagnose = withConfiguredRetry(service.diagnoseError.bind(service));
     server.tool('diagnose_error_screenshot', `Diagnose and analyze error messages, stack traces, and exception screenshots.
 
 Use this tool ONLY when the user has an error screenshot and needs help understanding or fixing it.

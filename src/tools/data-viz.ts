@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { FileNotFoundError, ApiError } from '../types/index.js';
 import { CommonSchemas, ToolSchemaBuilder } from '../utils/validation.js';
-import { formatMcpResponse, createSuccessResponse, createErrorResponse, withRetry } from '../core/api-common.js';
+import { formatMcpResponse, createSuccessResponse, createErrorResponse, withConfiguredRetry } from '../core/api-common.js';
 import { BaseImageAnalysisService } from '../core/base-image-service.js';
 import { DATA_VIZ_ANALYSIS_PROMPT } from '../prompts/index.js';
 
@@ -42,7 +42,7 @@ class DataVizAnalysisService extends BaseImageAnalysisService {
  */
 export function registerDataVizAnalysisTool(server: { tool: Function }) {
     const service = new DataVizAnalysisService();
-    const retryableAnalyze = withRetry(service.analyzeDataViz.bind(service), 2, 1000);
+    const retryableAnalyze = withConfiguredRetry(service.analyzeDataViz.bind(service));
     server.tool('analyze_data_visualization', `Analyze data visualizations, charts, graphs, and dashboards to extract insights and trends.
 
 Use this tool ONLY when the user has a data visualization image and wants to understand the data patterns or metrics.

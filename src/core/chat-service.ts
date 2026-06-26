@@ -1,4 +1,5 @@
 import { getVisionProvider } from '../providers/index.js';
+import { configurationService } from './environment.js';
 import type { ChatMessage } from '../providers/types.js';
 
 /**
@@ -12,7 +13,8 @@ export class ChatService {
      */
     async visionCompletions(messages: ChatMessage[]): Promise<string> {
         const provider = getVisionProvider();
-        return provider.complete({ messages, thinking: true });
+        const config = configurationService.getVisionConfig();
+        return provider.complete({ messages, thinking: config.thinking });
     }
 }
 

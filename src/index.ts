@@ -6,11 +6,11 @@ import { handleError } from './core/error-handler.js';
 import { setupConsoleRedirection } from './utils/logger.js';
 import { loadDotEnv } from './utils/dotenv.js';
 import { getVisionProvider } from './providers/index.js';
-// Setup console redirection BEFORE any other code to prevent stdout pollution
-setupConsoleRedirection();
 // Load .env from CWD so provider config (OPENAI_*, VLM_*) is picked up
 // without requiring the user to source the file. Real env vars take precedence.
 loadDotEnv();
+// Setup console redirection before any logging to prevent stdout pollution.
+setupConsoleRedirection();
 // Import tool registration functions
 import { registerUiToArtifactTool } from './tools/ui-to-artifact.js';
 import { registerTextExtractionTool } from './tools/text-extraction.js';

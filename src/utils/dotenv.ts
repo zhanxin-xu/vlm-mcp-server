@@ -41,5 +41,4 @@ export function loadDotEnv(filePath?: string): void {
             process.env[key] = value;
         }
     }
-    console.info('Loaded .env file', { path: envPath });
 }

@@ -1,4 +1,6 @@
 import type { ChatMessage, ContentPart } from '../providers/types.js';
+import { ApiError, FileNotFoundError, ValidationError } from '../types/index.js';
+import { configurationService } from './environment.js';
 
 /**
  * Create multimodal message content
@@ -104,23 +106,63 @@ export function formatMcpResponse(response: StandardResponse) {
     }
 }
 
+export interface RetryOptions {
+    shouldRetry?: (error: unknown, attempt: number) => boolean;
+}
+
+/**
+ * Check whether an error is likely to be transient and worth retrying.
+ */
+export function isRetryableError(error: unknown): boolean {
+    if (error instanceof FileNotFoundError || error instanceof ValidationError) {
+        return false;
+    }
+    if (error instanceof ApiError) {
+        if (typeof error.statusCode === 'number') {
+            return error.statusCode === 408
+                || error.statusCode === 409
+                || error.statusCode === 425
+                || error.statusCode === 429
+                || error.statusCode >= 500;
+        }
+        return /timeout|network|fetch failed|econnreset|etimedout|eai_again|enotfound|econnrefused/i.test(error.message);
+    }
+    if (error && typeof error === 'object') {
+        const code = (error as { code?: unknown }).code;
+        if (code === 'VALIDATION_ERROR' || code === 'FILE_NOT_FOUND') {
+            return false;
+        }
+        const cause = (error as { cause?: unknown }).cause;
+        if (cause && cause !== error) {
+            return isRetryableError(cause);
+        }
+    }
+    return false;
+}
+
+function normalizeRetryCount(maxRetries: number): number {
+    return Number.isFinite(maxRetries) && maxRetries > 0 ? Math.floor(maxRetries) : 0;
+}
+
 /**
  * Create async function with retry mechanism
  * @param fn Async function to execute
- * @param maxRetries Maximum retry attempts
+ * @param maxRetries Maximum retry attempts after the initial call
  * @param delay Retry delay in milliseconds
  * @returns Wrapped function
  */
-export function withRetry<T extends (...args: any[]) => Promise<any>>(fn: T, maxRetries = 3, delay = 1000): T {
+export function withRetry<T extends (...args: any[]) => Promise<any>>(fn: T, maxRetries = 3, delay = 1000, options: RetryOptions = {}): T {
     return (async (...args: Parameters<T>) => {
         let lastError: unknown;
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        const retryLimit = normalizeRetryCount(maxRetries);
+        const shouldRetry = options.shouldRetry || isRetryableError;
+        for (let attempt = 0; attempt <= retryLimit; attempt++) {
             try {
                 return await fn(...args);
             }
             catch (error) {
                 lastError = error instanceof Error ? error : new Error(String(error));
-                if (attempt === maxRetries) {
+                if (attempt === retryLimit || !shouldRetry(lastError, attempt)) {
                     throw lastError;
                 }
                 // Exponential backoff
@@ -130,4 +172,11 @@ export function withRetry<T extends (...args: any[]) => Promise<any>>(fn: T, max
         }
         throw lastError;
     }) as T;
+}
+
+/**
+ * Create a retry wrapper using the configured vision retry count.
+ */
+export function withConfiguredRetry<T extends (...args: any[]) => Promise<any>>(fn: T, delay = 1000): T {
+    return withRetry(fn, configurationService.getVisionConfig().retryCount, delay);
 }

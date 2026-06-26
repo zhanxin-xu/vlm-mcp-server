@@ -21,6 +21,7 @@ export interface EnvironmentConfig {
     VLM_RETRY_COUNT?: string;
     VLM_PROVIDER?: string;
     PROVIDER?: string;
+    VLM_ENABLE_THINKING?: string;
     VLM_ANTHROPIC_VERSION?: string;
     // Server metadata
     SERVER_NAME?: string;
@@ -157,6 +158,7 @@ export class EnvironmentService {
             VLM_RETRY_COUNT: env.VLM_RETRY_COUNT || env.RETRY_COUNT,
             VLM_PROVIDER: providerKind,
             PROVIDER: env.PROVIDER,
+            VLM_ENABLE_THINKING: env.VLM_ENABLE_THINKING || env.ENABLE_THINKING,
             VLM_ANTHROPIC_VERSION: env.VLM_ANTHROPIC_VERSION || env.ANTHROPIC_VERSION,
             SERVER_NAME: env.SERVER_NAME,
             SERVER_VERSION: env.SERVER_VERSION
@@ -209,13 +211,39 @@ export class EnvironmentService {
         const config = this.getConfig();
         return {
             model: config.VLM_VISION_MODEL || 'glm-4.6v',
-            timeout: parseInt(config.VLM_TIMEOUT || '300000'),
-            retryCount: parseInt(config.VLM_RETRY_COUNT || '1'),
+            timeout: this.parsePositiveInteger(config.VLM_TIMEOUT, 300000),
+            retryCount: this.parseNonNegativeInteger(config.VLM_RETRY_COUNT, 1),
             url: this.resolveRequestUrl(),
-            temperature: parseFloat(config.VLM_VISION_MODEL_TEMPERATURE || '0.8'),
-            topP: parseFloat(config.VLM_VISION_MODEL_TOP_P || '0.6'),
-            maxTokens: parseInt(config.VLM_VISION_MODEL_MAX_TOKENS || '32768')
+            temperature: this.parseNumber(config.VLM_VISION_MODEL_TEMPERATURE, 0.8),
+            topP: this.parseNumber(config.VLM_VISION_MODEL_TOP_P, 0.6),
+            maxTokens: this.parsePositiveInteger(config.VLM_VISION_MODEL_MAX_TOKENS, 32768),
+            thinking: this.parseBoolean(config.VLM_ENABLE_THINKING, false)
         };
+    }
+
+    private parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
+        if (value === undefined) {
+            return defaultValue;
+        }
+        return ['1', 'true', 'yes', 'on'].includes(value.trim().toLowerCase());
+    }
+
+    private parseNumber(value: string | undefined, defaultValue: number): number {
+        if (value === undefined) {
+            return defaultValue;
+        }
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : defaultValue;
+    }
+
+    private parsePositiveInteger(value: string | undefined, defaultValue: number): number {
+        const parsed = Math.floor(this.parseNumber(value, defaultValue));
+        return parsed > 0 ? parsed : defaultValue;
+    }
+
+    private parseNonNegativeInteger(value: string | undefined, defaultValue: number): number {
+        const parsed = Math.floor(this.parseNumber(value, defaultValue));
+        return parsed >= 0 ? parsed : defaultValue;
     }
 
     /**
