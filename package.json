@@ -1,6 +1,6 @@
 {
   "name": "@syntx-ai/vlm-mcp-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP Server for VLM - A Model Context Protocol server providing vision/video analysis, configurable with any model provider (Chat Completions / Responses / Anthropic).",
   "main": "build/index.js",
   "type": "module",
