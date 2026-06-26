@@ -1,0 +1,56 @@
+{
+  "name": "@syntx-ai/vlm-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for VLM - A Model Context Protocol server providing vision/video analysis, configurable with any model provider (Chat Completions / Responses / Anthropic).",
+  "main": "build/index.js",
+  "type": "module",
+  "files": [
+    "build",
+    "assets/vlm-mcp-server-hero.png",
+    "README.md",
+    "README.zh-CN.md"
+  ],
+  "bin": {
+    "vlm-mcp-server": "build/index.js"
+  },
+  "scripts": {
+    "build": "tsc && chmod 755 build/index.js",
+    "start": "node build/index.js",
+    "dev": "ts-node --esm src/index.ts",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "vlm",
+    "vision",
+    "anthropic",
+    "openai",
+    "responses",
+    "chat-completions"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/syntx-ai/vlm-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/syntx-ai/vlm-mcp-server/issues"
+  },
+  "homepage": "https://github.com/syntx-ai/vlm-mcp-server#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.26.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}
